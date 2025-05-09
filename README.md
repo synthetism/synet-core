@@ -4,7 +4,7 @@ Core cryptographic and identity primitives for Synet agents.
 
 ## Installation
 ```
-**npm** **install** **@synet/core**
+npm install @synet/core**
 ```
 ## Features
 
@@ -80,7 +80,7 @@ console.log('Agent ID:', agentId); // e.g., "8f4d7c2b1a3e6d5f"
 
 ### Key Manager Functions
 
-#### [generateKeyPair(type: &#39;rsa&#39; | &#39;ed25519&#39;): KeyPair](vscode-file://vscode-app/Applications/Visual%20Studio%20Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.html)
+##### `generateKeyPair(type: 'rsa' | 'ed25519'): KeyPair`
 
 Generates a new cryptographic key pair of the specified type.
 
@@ -95,6 +95,10 @@ Computes a 16-character hexadecimal identifier from a public key.
 #### `getFingerprint(publicKey: string): string`
 
 Computes a full 64-character hexadecimal fingerprint from a public key.
+
+#### `generateWireGuardKeyPair(): { privateKey: string, publicKey: string }`
+
+Generates Wireguard native Curve25519 (X25519) keypair exported in Base64
 
 ### Signer Functions
 
