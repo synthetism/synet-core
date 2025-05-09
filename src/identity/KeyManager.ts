@@ -1,4 +1,7 @@
 import * as crypto from "node:crypto";
+import nacl from 'tweetnacl';
+import { encodeBase64 } from 'tweetnacl-util';
+
 
 export type KeyType = "rsa" | "ed25519";
 
@@ -99,4 +102,19 @@ export function getShortId(publicKey: string): string {
  */
 export function getFingerprint(publicKey: string): string {
   return crypto.createHash("sha256").update(publicKey).digest("hex");
+}
+
+/**
+ * Generates a WireGuard-compatible key pair using TweetNaCl
+ * @returns A key pair object with WireGuard-compatible keys
+ */
+export function generateWireGuardKeyPair(): { privateKey: string, publicKey: string } {
+  // Generate a keypair using TweetNaCl's box (which uses Curve25519)
+  const keyPair = nacl.box.keyPair();
+  
+  // Convert the Uint8Array keys to base64 strings as required by WireGuard
+  return {
+    privateKey: encodeBase64(keyPair.secretKey),
+    publicKey: encodeBase64(keyPair.publicKey)
+  };
 }
