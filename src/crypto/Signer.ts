@@ -5,9 +5,13 @@ import * as crypto from "node:crypto";
  * @param privateKey The private key in PEM format
  * @param message The message to sign
  * @returns The signature as a base64 string
+ * @throws {Error} If inputs are invalid or signing fails
  */
 export function signMessage(privateKey: string, message: string): string {
   try {
+    if (!privateKey || !message) {
+      throw new Error("Invalid input: privateKey and message are required");
+    }
     const keyType = detectKeyType(privateKey);
 
     if (keyType === "ed25519") {
@@ -27,7 +31,7 @@ export function signMessage(privateKey: string, message: string): string {
 
     return sign.sign(privateKey, "base64");
   } catch (error: unknown) {
-    console.error("Error signing message:", error);
+    //console.error("Error signing message:", error);
 
     if (error instanceof Error) {
       throw new Error(`Failed to sign message: ${error.message}`);
@@ -42,6 +46,7 @@ export function signMessage(privateKey: string, message: string): string {
  * @param message The original message
  * @param signature The signature to verify (base64 string)
  * @returns True if the signature is valid, false otherwise
+ * @throws {Error} If inputs are invalid or signing fails
  */
 export function verifySignature(
   publicKey: string,
@@ -49,10 +54,13 @@ export function verifySignature(
   signature: string,
 ): boolean {
   if (!publicKey || !message || !signature) {
-    return false;
+    throw new Error(
+      "Invalid input: publicKey, message and signature are required",
+    );
   }
+
   if (!publicKey.includes("-----BEGIN") || !publicKey.includes("-----END")) {
-    return false;
+    throw new Error("Invalid publicKey format: PEM format required");
   }
 
   try {
@@ -78,8 +86,13 @@ export function verifySignature(
 
     return verify.verify(publicKey, signature, "base64");
   } catch (error: unknown) {
-    console.error("Error verifying signature:", error);
-    return false;
+    console.error("Error signing message:", error);
+
+    if (error instanceof Error) {
+      throw new Error(`Failed to verify signature: ${error.message}`);
+    }
+
+    throw new Error("Failed to verify signature: Unknown error");
   }
 }
 

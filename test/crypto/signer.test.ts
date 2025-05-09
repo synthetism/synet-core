@@ -37,10 +37,23 @@ describe('Signer', () => {
     
     // Should not throw errors
     expect(() => verifySignature(validKey, testMessage, 'invalid-signature')).not.toThrow();
-    expect(() => verifySignature(invalidKey, testMessage, 'invalid-signature')).not.toThrow();
-    
-    // Should return false for invalid inputs
     expect(verifySignature(validKey, testMessage, 'invalid-signature')).toBe(false);
-    expect(verifySignature(invalidKey, testMessage, 'invalid-signature')).toBe(false);
+
+    // Should throw errors
+    expect(() => verifySignature(invalidKey, testMessage, 'invalid-signature')).toThrow();
+       
+
   });
+
+
+  it('should handle empty inputs gracefully', () => {
+  
+
+    // Should throw for missing inputs
+    expect(() => verifySignature('', '', '')).toThrow();
+    expect(() => signMessage('', '')).toThrow();
+  
+
+  });
+
 });
