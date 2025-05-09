@@ -3,7 +3,7 @@ import nacl from 'tweetnacl';
 import { encodeBase64 } from 'tweetnacl-util';
 
 
-export type KeyType = "rsa" | "ed25519";
+export type KeyType = "rsa" | "ed25519" | "wireguard";
 
 export interface KeyPair {
   privateKey: string;
@@ -11,48 +11,75 @@ export interface KeyPair {
   type: KeyType;
 }
 
-/**
- * Generate a cryptographic key pair
- * @param type The type of key to generate ('rsa' or 'ed25519')
- * @returns A key pair object containing public and private keys
- */
+export interface KeyProvider {
+  generateKeyPair(): KeyPair;
+  // Optionally: derivePublicKey, getShortId, etc.
+}
 
-export function generateKeyPair(type: KeyType): KeyPair {
-  if (type === "rsa") {
+class RsaKeyProvider implements KeyProvider {
+  generateKeyPair(): KeyPair {
     const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
       modulusLength: 2048,
-      publicKeyEncoding: {
-        type: "spki",
-        format: "pem",
-      },
-      privateKeyEncoding: {
-        type: "pkcs8",
-        format: "pem",
-      },
+      publicKeyEncoding: { type: "spki", format: "pem" },
+      privateKeyEncoding: { type: "pkcs8", format: "pem" },
     });
-
-    return { publicKey, privateKey, type };
+    return { publicKey, privateKey, type: "rsa" };
   }
+}
 
-  if (type === "ed25519") {
+class Ed25519KeyProvider implements KeyProvider {
+  generateKeyPair(): KeyPair {
     const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519", {
-      publicKeyEncoding: {
-        type: "spki",
-        format: "pem",
-      },
-      privateKeyEncoding: {
-        type: "pkcs8",
-        format: "pem",
-      },
+      publicKeyEncoding: { type: "spki", format: "pem" },
+      privateKeyEncoding: { type: "pkcs8", format: "pem" },
     });
-
-    return { publicKey, privateKey, type };
+    return { publicKey, privateKey, type: "ed25519" };
   }
+}
 
-  throw new Error(`Unsupported key type: ${type}`);
+class WireguardKeyProvider implements KeyProvider {
+  generateKeyPair(): KeyPair {
+    const keyPair = nacl.box.keyPair();
+    return {
+      privateKey: encodeBase64(keyPair.secretKey),
+      publicKey: encodeBase64(keyPair.publicKey),
+      type: "wireguard",
+    };
+  }
+}
+
+// Factory
+export function getKeyProvider(type: KeyType): KeyProvider {
+  switch (type) {
+    case "rsa": return new RsaKeyProvider();
+    case "ed25519": return new Ed25519KeyProvider();
+    case "wireguard": return new WireguardKeyProvider();
+    default: throw new Error(`Unsupported key type: ${type}`);
+  }
 }
 
 /**
+ * 
+ * @param type The type of key to generate (e.g., '
+ * rsa', 'ed25519', 'wireguard')
+ * @returns A key pair object containing the private and public keys
+ * @throws Error if the key type is unsupported
+ * @returns 
+ */
+
+export function generateKeyPair(type: KeyType): KeyPair {
+  try {
+
+  const provider = getKeyProvider(type);
+  const { privateKey, publicKey } = provider.generateKeyPair();
+  return { privateKey, publicKey, type };
+  } catch (error) {
+    console.error("Error generating key pair:", error);
+    throw error;
+  }
+
+}
+/** 
  * Extract the public key from a private key
  * @param privateKey The private key in PEM format
  * @returns The corresponding public key in PEM format, or null if extraction fails
@@ -105,7 +132,8 @@ export function getFingerprint(publicKey: string): string {
 }
 
 /**
- * Generates a WireGuard-compatible key pair using TweetNaCl
+ * @deprecated Use generateKeyPair('wireguard') instead.
+ * Generates a WireGuard-compatible key pair using TweetNaCl.
  * @returns A key pair object with WireGuard-compatible keys
  */
 export function generateWireGuardKeyPair(): { privateKey: string, publicKey: string } {

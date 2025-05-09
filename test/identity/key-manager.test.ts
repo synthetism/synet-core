@@ -1,19 +1,28 @@
 import { describe, it, expect } from 'vitest';
-import {  derivePublicKey,getShortId , getFingerprint } from '../../src/identity/KeyManager';
-import { keyPairs } from '../fixtures/keys';
+import { derivePublicKey, getShortId, getFingerprint, generateKeyPair } from '../../src/identity/KeyManager';
 
 describe('KeyManager', () => {
-  ['rsa', 'ed25519'].forEach((type) => {
+  const keyTypes = ['rsa', 'ed25519', 'wireguard'] as const;
+
+  keyTypes.forEach((type) => {
     describe(`${type.toUpperCase()} key pair`, () => {
-    
-      const keys = keyPairs[type];
+      const keys = generateKeyPair(type);
 
       it('should generate valid public and private keys', () => {
         expect(keys.privateKey).toBeTypeOf('string');
         expect(keys.publicKey).toBeTypeOf('string');
         expect(keys.type).toBe(type);
-        expect(keys.privateKey).toContain('BEGIN');
-        expect(keys.publicKey).toContain('BEGIN');
+
+        if (type === 'wireguard') {
+          // WireGuard keys are base64, not PEM
+          expect(keys.privateKey).not.toContain('BEGIN');
+          expect(keys.publicKey).not.toContain('BEGIN');
+          expect(keys.privateKey.length).toBeGreaterThan(40);
+          expect(keys.publicKey.length).toBeGreaterThan(40);
+        } else {
+          expect(keys.privateKey).toContain('BEGIN');
+          expect(keys.publicKey).toContain('BEGIN');
+        }
       });
 
       it('should generate a valid short ID', () => {
@@ -28,25 +37,20 @@ describe('KeyManager', () => {
         expect(fingerprint).toMatch(/^[a-f0-9]{64}$/);
       });
 
-      it('should derive the correct public key from a private key', () => {
-        // Get the derived public key
-        const derivedPublicKey = derivePublicKey(keys.privateKey);
-        
-        // Clean up whitespace and line breaks for comparison
-        const normalizedDerived = derivedPublicKey?.replace(/\s+/g, '');
-        const normalizedOriginal = keys.publicKey.replace(/\s+/g, '');
-        
-        // Verify the derived key matches the original public key
-        expect(normalizedDerived).toBe(normalizedOriginal);
-      });
+      if (type !== 'wireguard') {
+        it('should derive the correct public key from a private key', () => {
+          const derivedPublicKey = derivePublicKey(keys.privateKey);
+          const normalizedDerived = derivedPublicKey?.replace(/\s+/g, '');
+          const normalizedOriginal = keys.publicKey.replace(/\s+/g, '');
+          expect(normalizedDerived).toBe(normalizedOriginal);
+        });
 
-      // Add this test to verify behavior with invalid input
-      it('should return null when deriving from invalid private key', () => {
-        const invalidKey = 'NOT A VALID PRIVATE KEY';
-        const result = derivePublicKey(invalidKey);
-        expect(result).toBeNull();
-      });
-
+        it('should return null when deriving from invalid private key', () => {
+          const invalidKey = 'NOT A VALID PRIVATE KEY';
+          const result = derivePublicKey(invalidKey);
+          expect(result).toBeNull();
+        });
+      }
     });
   });
 });
