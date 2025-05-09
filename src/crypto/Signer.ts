@@ -1,4 +1,4 @@
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 
 /**
  * Sign a message with a private key
@@ -18,17 +18,21 @@ export function signMessage(privateKey: string, message: string): string {
       });
 
       return signature.toString("base64");
-    } else {
-      // Use the traditional API for RSA
-      const sign = crypto.createSign("SHA256");
-      sign.update(message);
-      sign.end();
-
-      return sign.sign(privateKey, "base64");
     }
-  } catch (error: any) {
+
+    // Use the traditional API for RSA
+    const sign = crypto.createSign("SHA256");
+    sign.update(message);
+    sign.end();
+
+    return sign.sign(privateKey, "base64");
+  } catch (error: unknown) {
     console.error("Error signing message:", error);
-    throw new Error(`Failed to sign message: ${error.message}`);
+
+    if (error instanceof Error) {
+      throw new Error(`Failed to sign message: ${error.message}`);
+    }
+    throw new Error("Failed to sign message: Unknown error");
   }
 }
 
@@ -65,15 +69,15 @@ export function verifySignature(
         },
         Buffer.from(signature, "base64"),
       );
-    } else {
-      // Use the traditional API for RSA
-      const verify = crypto.createVerify("SHA256");
-      verify.update(message);
-      verify.end();
-
-      return verify.verify(publicKey, signature, "base64");
     }
-  } catch (error) {
+
+    // Use the traditional API for RSA
+    const verify = crypto.createVerify("SHA256");
+    verify.update(message);
+    verify.end();
+
+    return verify.verify(publicKey, signature, "base64");
+  } catch (error: unknown) {
     console.error("Error verifying signature:", error);
     return false;
   }
@@ -97,15 +101,17 @@ function detectKeyType(key: string): "rsa" | "ed25519" {
 
     if (keyType === "ed25519") {
       return "ed25519";
-    } else {
-      return "rsa";
     }
-  } catch (e) {
+
+    return "rsa";
+  } catch (_e) {
     // If we can't create a key object, try some heuristics
     if (key.includes("BEGIN PRIVATE KEY") && key.length < 400) {
       // ED25519 private keys are much shorter than RSA
       return "ed25519";
-    } else if (key.includes("BEGIN PUBLIC KEY") && key.length < 300) {
+    }
+
+    if (key.includes("BEGIN PUBLIC KEY") && key.length < 300) {
       // ED25519 public keys are much shorter than RSA
       return "ed25519";
     }

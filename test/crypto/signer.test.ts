@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { signMessage, verifySignature } from '../../src/crypto/Signer';
 import { keyPairs, testMessage } from '../fixtures/keys';
-import { KeyManager } from '../../src/identity/KeyManager';
+import { generateKeyPair } from '../../src/identity/KeyManager';
 
 
 describe('Signer', () => {
@@ -23,7 +23,7 @@ describe('Signer', () => {
       });
       
       it('should fail verification with a wrong key', () => {
-        const differentKeys = KeyManager.generateKeyPair(type as any);
+        const differentKeys = generateKeyPair(type as any);
         const signature = signMessage(keys.privateKey, testMessage);
         const isValid = verifySignature(differentKeys.publicKey, testMessage, signature);
         expect(isValid).toBe(false);
@@ -33,7 +33,7 @@ describe('Signer', () => {
   
   it('should handle invalid inputs gracefully', () => {
     const invalidKey = 'NOT A VALID KEY';
-    const validKey = KeyManager.generateKeyPair('rsa').publicKey;
+    const validKey = generateKeyPair('rsa').publicKey;
     
     // Should not throw errors
     expect(() => verifySignature(validKey, testMessage, 'invalid-signature')).not.toThrow();

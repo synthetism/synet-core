@@ -1,9 +1,8 @@
 // In test/fixtures/keys.ts
-import { KeyManager } from '../../src/identity/KeyManager';
-
+import { generateKeyPair } from '../../src/identity/KeyManager';
 // Generate once and export
-const rsaKeyPair = KeyManager.generateKeyPair('rsa');
-const ed25519KeyPair = KeyManager.generateKeyPair('ed25519');
+const rsaKeyPair = generateKeyPair('rsa');
+const ed25519KeyPair = generateKeyPair('ed25519');
 
 export const testMessage = 'Synet is rising.';
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { KeyManager } from '../../src/identity/KeyManager';
+import {  derivePublicKey,getShortId , getFingerprint } from '../../src/identity/KeyManager';
 import { keyPairs } from '../fixtures/keys';
 
 describe('KeyManager', () => {
@@ -17,20 +17,20 @@ describe('KeyManager', () => {
       });
 
       it('should generate a valid short ID', () => {
-        const id = KeyManager.getShortId(keys.publicKey);
+        const id = getShortId(keys.publicKey);
         expect(id.length).toBe(16);
         expect(id).toMatch(/^[a-f0-9]{16}$/);
       });
 
       it('should generate a valid fingerprint', () => {
-        const fingerprint = KeyManager.getFingerprint(keys.publicKey);
+        const fingerprint = getFingerprint(keys.publicKey);
         expect(fingerprint.length).toBe(64);
         expect(fingerprint).toMatch(/^[a-f0-9]{64}$/);
       });
 
       it('should derive the correct public key from a private key', () => {
         // Get the derived public key
-        const derivedPublicKey = KeyManager.derivePublicKey(keys.privateKey);
+        const derivedPublicKey = derivePublicKey(keys.privateKey);
         
         // Clean up whitespace and line breaks for comparison
         const normalizedDerived = derivedPublicKey?.replace(/\s+/g, '');
@@ -43,7 +43,7 @@ describe('KeyManager', () => {
       // Add this test to verify behavior with invalid input
       it('should return null when deriving from invalid private key', () => {
         const invalidKey = 'NOT A VALID PRIVATE KEY';
-        const result = KeyManager.derivePublicKey(invalidKey);
+        const result = derivePublicKey(invalidKey);
         expect(result).toBeNull();
       });
 
