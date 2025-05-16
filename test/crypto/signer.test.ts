@@ -5,7 +5,7 @@ import { generateKeyPair } from '../../src/identity/KeyManager';
 
 
 describe('Signer', () => {
-  ['rsa', 'ed25519'].forEach((type) => {
+  for (const type of ['rsa', 'ed25519'] as const) {
     describe(`${type.toUpperCase()} signatures`, () => {
       const keys = keyPairs[type]
                
@@ -23,13 +23,13 @@ describe('Signer', () => {
       });
       
       it('should fail verification with a wrong key', () => {
-        const differentKeys = generateKeyPair(type as any);
+        const differentKeys = generateKeyPair(type);
         const signature = signMessage(keys.privateKey, testMessage);
         const isValid = verifySignature(differentKeys.publicKey, testMessage, signature);
         expect(isValid).toBe(false);
       });
     });
-  });
+  }
   
   it('should handle invalid inputs gracefully', () => {
     const invalidKey = 'NOT A VALID KEY';

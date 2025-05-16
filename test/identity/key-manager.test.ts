@@ -4,7 +4,7 @@ import { derivePublicKey, getShortId, getFingerprint, generateKeyPair } from '..
 describe('KeyManager', () => {
   const keyTypes = ['rsa', 'ed25519', 'wireguard'] as const;
 
-  keyTypes.forEach((type) => {
+  for (const type of keyTypes) {
     describe(`${type.toUpperCase()} key pair`, () => {
       const keys = generateKeyPair(type);
 
@@ -52,5 +52,5 @@ describe('KeyManager', () => {
         });
       }
     });
-  });
+  }
 });

@@ -28,7 +28,7 @@ describe('Hash functions', () => {
     
     it('should produce different hashes for different inputs', () => {
       const hash1 = sha256Hex(testInput);
-      const hash2 = sha256Hex(testInput + ' modified');
+      const hash2 = sha256Hex(`${testInput} modified`);
       expect(hash1).not.toBe(hash2);
     });
   });
@@ -59,7 +59,7 @@ describe('Hash functions', () => {
     
     it('should produce different hashes for different inputs', () => {
       const hash1 = sha256Base64(testInput);
-      const hash2 = sha256Base64(testInput + ' modified');
+      const hash2 = sha256Base64(`${testInput} modified`);
       expect(hash1).not.toBe(hash2);
     });
   });
